@@ -1,0 +1,41 @@
+---
+abstract: 'Access Perl module, functions, variables through Riap'
+author:
+  - 'Steven Haryanto <stevenharyanto@gmail.com>'
+build_requires:
+  Capture::Tiny: 0
+  File::Slurp: 0
+  Module::Build: 0.3601
+  Perinci::Examples: 0.08
+  Test::Exception: 0
+  Test::More: 0.98
+  blib: 0
+configure_requires:
+  Module::Build: 0.3601
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.300035, CPAN::Meta::Converter version 2.132140'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Perinci-Access-Perl
+requires:
+  Class::Inspector: 0
+  Log::Any: 0
+  Module::List: 0
+  Perinci::Access::Base: 0.30
+  Perinci::Object: 0.11
+  Perinci::Sub::Wrapper: 0.45
+  Progress::Any: 0
+  Riap: v1.1.19
+  Rinci: v1.1.36
+  SHARYANTO::ModuleOrPrefix::Path: 0
+  SHARYANTO::Package::Util: 0
+  Tie::Cache: 0
+  URI::Split: 0
+  UUID::Random: 0
+  perl: 5.010001
+resources:
+  homepage: http://metacpan.org/release/Perinci-Access-Perl
+  repository: http://github.com/sharyanto/perl-Perinci-Access-Perl
+version: 0.48

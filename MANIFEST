@@ -1,0 +1,17 @@
+Build.PL
+Changes
+LICENSE
+MANIFEST
+MANIFEST.SKIP
+META.json
+META.yml
+README
+dist.ini
+lib/Perinci/Access/Perl.pm
+lib/Perinci/Access/Schemeless.pm
+t/00-compile.t
+t/perl.t
+t/release-pod-coverage.t
+t/release-pod-syntax.t
+t/release-rinci.t
+t/schemeless.t

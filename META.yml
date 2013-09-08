@@ -38,4 +38,4 @@ requires:
 resources:
   homepage: http://metacpan.org/release/Perinci-Access-Perl
   repository: http://github.com/sharyanto/perl-Perinci-Access-Perl
-version: 0.48
+version: 0.49

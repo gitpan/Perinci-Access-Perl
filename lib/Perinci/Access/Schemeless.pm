@@ -14,7 +14,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.48'; # VERSION
+our $VERSION = '0.49'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -318,7 +318,7 @@ sub get_meta {
         return $res;
     }
     $req->{-meta} = $res->[2][1];
-    $req->{-orig_meta} = $res->[3]{orig_meta};
+    $req->{-orig_meta} = $res->[2][2]{orig_meta};
     return;
 }
 
@@ -896,7 +896,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 DESCRIPTION
 

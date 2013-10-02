@@ -8,13 +8,14 @@ use Log::Any '$log';
 use parent qw(Perinci::Access::Base);
 
 use Perinci::Object;
+use Perinci::Sub::Util qw(err);
 use Scalar::Util qw(blessed reftype);
 use SHARYANTO::ModuleOrPrefix::Path qw(module_or_prefix_path);
 use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.49'; # VERSION
+our $VERSION = '0.50'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -59,6 +60,7 @@ sub new {
     $self->{_typeacts} = \%typeacts;
 
     $self->{cache_size}            //= 100;
+    $self->{disk_cache}            //= 0;
     $self->{use_tx}                //= 0;
     $self->{wrap}                  //= 1;
     $self->{custom_tx_manager}     //= undef;
@@ -120,21 +122,22 @@ sub _parse_uri {
     my $path = $req->{-uri_path};
     if (defined($self->{allow_paths}) &&
             !__match_list($path, $self->{allow_paths})) {
-        return [403, "Forbidden uri path (does not match allow_paths)"];
+        return err(403, "Forbidden uri path (does not match allow_paths)");
     }
     if (defined($self->{deny_paths}) &&
             __match_list($path, $self->{deny_paths})) {
-        return [403, "Forbidden uri path (matches deny_paths)"];
+        return err(403, "Forbidden uri path (matches deny_paths)");
     }
 
     my $sch = $req->{-uri_scheme} // "";
     if (defined($self->{allow_schemes}) &&
             !__match_list($sch, $self->{allow_schemes})) {
-        return [502, "Unsupported uri scheme (does not match allow_schemes)"];
+        return err(502,
+                   "Unsupported uri scheme (does not match allow_schemes)");
     }
     if (defined($self->{deny_schemes}) &&
             __match_list($sch, $self->{deny_schemes})) {
-        return [502, "Unsupported uri scheme (matches deny_schemes)"];
+        return err(502, "Unsupported uri scheme (matches deny_schemes)");
     }
 
     my ($dir, $leaf, $perl_package);
@@ -153,7 +156,7 @@ sub _parse_uri {
             $_ = "$self->{package_prefix}$_";
         }
     }
-    return [400, "Invalid uri"]
+    return err(400, "Invalid uri")
         if $perl_package && $perl_package !~ $re_perl_package;
 
     my $type;
@@ -196,7 +199,10 @@ sub _load_module {
     return if $INC{$module_p};
 
     # module has been required before and failed
-    return [500, "Module $pkg has failed to load previously"]
+    return err(500, "Module $pkg has failed to load previously" .
+                   $loadcache{$module_p} ?
+                       ": $loadcache{$module_p}[0] - $loadcache{$module_p}[1]" :
+                           "")
         if exists($INC{$module_p});
 
     # use cache result (for caching errors, or packages like 'main' and 'CORE'
@@ -236,9 +242,21 @@ sub _load_module {
     return $res;
 }
 
-sub _get_code_and_meta {
-    require Perinci::Sub::Wrapper;
+sub _get_cache_path {
+    my ($self, $name, $hash_source, $req) = @_;
 
+    require File::Spec;
+    my $dir = File::Spec->tmpdir;
+
+    require Data::Dumper;
+    require Digest::MD5;
+    my $hash = Digest::MD5::md5_hex(Data::Dumper::Dumper($hash_source));
+
+    my $fname = "$name.$hash.wrapcache";
+    sprintf("%s/%s", $dir, $fname);
+}
+
+sub _get_code_and_meta {
     no strict 'refs';
     my ($self, $req) = @_;
     my $name = $req->{-perl_package} . "::" . $req->{-uri_leaf};
@@ -259,37 +277,80 @@ sub _get_code_and_meta {
         $meta = {v=>1.1};
     }
 
-    return [404, "No metadata for $name"] unless $meta;
+    return err(404, "No metadata for $name") unless $meta;
 
     my $code;
     my $extra = {};
     if ($req->{-type} eq 'function') {
-        $code = \&{$name};
-        return [404, "Can't find function $req->{-uri_leaf} in ".
-                    "module $req->{-perl_package}"]
+        return err(404, "Can't find function $req->{-uri_leaf} in ".
+                       "module $req->{-perl_package}")
             unless defined &{$name};
-        if ($self->{wrap}) {
-            my $wres = Perinci::Sub::Wrapper::wrap_sub(
-                sub=>$code, sub_name=>$name, meta=>$meta,
+
+        my $cache_path;
+        my $wrapres;
+      GET_CODE:
+        {
+            if (!$self->{wrap}) {
+                $code = \&{$name};
+                last GET_CODE;
+            }
+
+            # try to find wrap result cache in disk
+            if ($self->{disk_cache}) {
+                $cache_path = $self->_get_cache_path(
+                    $name, [$self->{extra_wrapper_args},
+                            $self->{extra_wrapper_convert}]);
+                # XXX perhaps check if cache is stale, probably determined using
+                # a fixed expiry period and/or by comparing current version of
+                # Perinci::Sub::Wrapper with the version used to generate the
+                # wrapper code.
+                if (-f $cache_path) {
+                    my $res;
+                    $res = do $cache_path;
+                    return err(500, "Can't load disk cache '$cache_path': $@")
+                        if $@;
+                    $code = $res->[0];
+                    $meta = $res->[1];
+                    last GET_CODE;
+                }
+            }
+
+            require Perinci::Sub::Wrapper;
+            $wrapres = Perinci::Sub::Wrapper::wrap_sub(
+                sub_name=>$name, meta=>$meta,
                 forbid_tags => ['die'],
                 %{$self->{extra_wrapper_args}},
                 convert=>{
                     args_as=>'hash', result_naked=>0,
                     %{$self->{extra_wrapper_convert}},
                 });
-            return [500, "Can't wrap function: $wres->[0] - $wres->[1]"]
-                unless $wres->[0] == 200;
-            $code = $wres->[2]{sub};
+            return err(500, "Can't wrap function", $wrapres)
+                unless $wrapres->[0] == 200;
+            $code = $wrapres->[2]{sub};
             $extra->{orig_meta} = {
                 # store some info about the old meta, no need to store all for
                 # efficiency
                 result_naked=>$meta->{result_naked},
                 args_as=>$meta->{args_as},
             };
-            $meta = $wres->[2]{meta};
+            $meta = $wrapres->[2]{meta};
         }
+
         $self->{_cache}{$name} = [$code, $meta, $extra]
             if $self->{cache_size};
+        if ($wrapres && $cache_path) {
+            open my($fh), ">", $cache_path;
+            {
+                local $Data::Dumper::Deparse = 1;
+                local $Data::Dumper::Purity = 1;
+                local $Data::Dumper::Terse = 1;
+                local $Data::Dumper::Indent = 0;
+                print $fh "[do{$wrapres->[2]{source}}, ".
+                    Data::Dumper::Dumper($meta) . "];\n";
+            }
+            close $fh;
+            chmod 0600, $cache_path;
+        }
     }
     unless (defined $meta->{entity_v}) {
         my $ver = ${ $req->{-perl_package} . "::VERSION" };
@@ -337,20 +398,20 @@ sub request {
 
     my ($self, $action, $uri, $extra) = @_;
 
-    return [400, "Please specify URI"] unless $uri;
+    return err(400, "Please specify URI") unless $uri;
 
     my $req = { action=>$action, uri=>$uri, %{$extra // {}} };
     my $res = $self->check_request($req);
     return $res if $res;
 
     my $am = $self->{_actionmetas}{$action};
-    return [502, "Action '$action' not implemented"] unless $am;
+    return err(502, "Action '$action' not implemented") unless $am;
 
     $res = $self->_parse_uri($req);
     return $res if $res;
 
-    return [502, "Action '$action' not implemented for ".
-                "'$req->{-type}' entity"]
+    return err(502, "Action '$action' not implemented for ".
+                   "'$req->{-type}' entity")
         unless $self->{_typeacts}{ $req->{-type} }{ $action };
 
     my $meth = "action_$action";
@@ -540,7 +601,7 @@ sub action_call {
     my $risub = risub($meta);
 
     if ($req->{dry_run}) {
-        return [412, "Function does not support dry run"]
+        return err(412, "Function does not support dry run")
             unless $risub->can_dry_run;
         if ($risub->feature('dry_run')) {
             $args{-dry_run} = 1;
@@ -578,14 +639,15 @@ sub actionmeta_complete_arg_val { +{
 
 sub action_complete_arg_val {
     my ($self, $req) = @_;
-    my $arg = $req->{arg} or return [400, "Please specify arg"];
+    my $arg = $req->{arg} or return err(400, "Please specify arg");
     my $word = $req->{word} // "";
 
     my $res = $self->_get_code_and_meta($req);
     return $res unless $res->[0] == 200;
     my (undef, $meta) = @{$res->[2]};
     my $args_p = $meta->{args} // {};
-    my $arg_p = $args_p->{$arg} or return [400, "Unknown function arg '$arg'"];
+    my $arg_p = $args_p->{$arg}
+        or return err(400, "Unknown function arg '$arg'");
 
     my $words;
     eval { # completion sub can die, etc.
@@ -636,7 +698,7 @@ sub action_complete_arg_val {
 
         $words = [];
     };
-    return [500, "Completion died: $@"] if $@;
+    return err(500, "Completion died: $@") if $@;
 
     [200, "OK", [grep /^\Q$word\E/, @$words]];
 }
@@ -678,7 +740,7 @@ sub action_get {
 
     # extract prefix
     $req->{-uri_leaf} =~ s/^([%\@\$])//
-        or return [500, "BUG: Unknown variable prefix"];
+        or return err(500, "BUG: Unknown variable prefix");
     my $prefix = $1;
     my $name = $req->{-perl_package} . "::" . $req->{-uri_leaf};
     my $res =
@@ -692,7 +754,7 @@ sub action_get {
 sub _pre_tx_action {
     my ($self, $req) = @_;
 
-    return [501, "Transaction not supported by server"]
+    return err(501, "Transaction not supported by server")
         unless $self->{use_tx};
 
     # instantiate custom tx manager, per request if necessary
@@ -701,8 +763,8 @@ sub _pre_tx_action {
             $self->{_tx_manager} = $self->{custom_tx_manager}->($self);
             die $self->{_tx_manager} unless blessed($self->{_tx_manager});
         };
-        return [500, "Can't initialize custom tx manager: ".
-                    "$self->{_tx_manager}: $@"] if $@;
+        return err(500, "Can't initialize custom tx manager: ".
+                       "$self->{_tx_manager}: $@") if $@;
     } elsif (!blessed($self->{_tx_manager})) {
         my $tm_cl = $self->{custom_tx_manager} // "Perinci::Tx::Manager";
         my $tm_cl_p = $tm_cl; $tm_cl_p =~ s!::!/!g; $tm_cl_p .= ".pm";
@@ -711,7 +773,7 @@ sub _pre_tx_action {
             $self->{_tx_manager} = $tm_cl->new(pa => $self);
             die $self->{_tx_manager} unless blessed($self->{_tx_manager});
         };
-        return [500, "Can't initialize tx manager ($tm_cl): $@"] if $@;
+        return err(500, "Can't initialize tx manager ($tm_cl): $@") if $@;
         # we just want to force newer version, we currently can't specify this
         # in Makefile.PL because peritm's tests use us. this might be rectified
         # in the future.
@@ -896,7 +958,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.49
+version 0.50
 
 =head1 DESCRIPTION
 
@@ -1043,11 +1105,28 @@ This is only relevant if you enable C<wrap>.
 =item * cache_size => INT (default: 100)
 
 Specify cache size (in number of items). Cache saves the result of function
-wrapping so future requests to the same function need not involve wrapping
-again. Setting this to 0 disables caching.
+wrapping in memory using L<Tie::Cache> so future requests to the same function
+need not involve wrapping again. Setting this to 0 disables caching.
 
 Caching is implemented inside C<get_meta()> and C<get_code()> so you might want
 to implement your own caching if you override those.
+
+See also: C<disk_cache>
+
+=item * disk_cache => BOOL (default: 0)
+
+Whether to cache function wrapping result to disk, to shave startup overhead for
+the next invocation of program. Useful for one-off programs like command-line
+scripts (see L<Perinci::CmdLine>) that get invoked often; not really useful for
+long-running programs (e.g. daemons).
+
+Currently wrapping result is cached in C<<
+$TMPDIR/Package::SubPackage::funcname.$HASH.wrapcache >> where C<$HASH> is
+calculated from C<extra_wrapper_args> and C<extra_wrapper_convert>.
+
+See also: C<cache_size>
+
+TODO: C<disk_cache_path>
 
 =item * allow_paths => REGEX|STR|ARRAY
 

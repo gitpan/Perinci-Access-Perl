@@ -1,15 +1,16 @@
-Build.PL
 Changes
 LICENSE
 MANIFEST
 MANIFEST.SKIP
 META.json
 META.yml
+Makefile.PL
 README
 dist.ini
 lib/Perinci/Access/Perl.pm
 lib/Perinci/Access/Schemeless.pm
 t/00-compile.t
+t/opt-disk_cache.t
 t/perl.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t

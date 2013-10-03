@@ -15,7 +15,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.51'; # VERSION
+our $VERSION = '0.52'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -195,6 +195,8 @@ sub _load_module {
     $module_p =~ s!::!/!g;
     $module_p .= ".pm";
 
+    $req->{-module_p} = $module_p; # for convenience of _get_cache_path
+
     # module has been required before and successfully loaded
     return if $INC{$module_p};
 
@@ -239,7 +241,6 @@ sub _load_module {
         }
     }
     $loadcache{$module_p} = $res;
-    $req->{-module_p} = $module_p; # for convenience of _get_cache_path
     return $res;
 }
 
@@ -978,7 +979,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.51
+version 0.52
 
 =head1 DESCRIPTION
 

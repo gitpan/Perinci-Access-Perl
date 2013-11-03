@@ -16,3 +16,4 @@ t/release-pod-coverage.t
 t/release-pod-syntax.t
 t/release-rinci.t
 t/schemeless.t
+weaver.ini

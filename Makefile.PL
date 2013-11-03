@@ -25,6 +25,7 @@ my %WriteMakefileArgs = (
     "Module::List" => 0,
     "Perinci::Access::Base" => "0.30",
     "Perinci::Object" => "0.11",
+    "Perinci::Sub::Complete" => 0,
     "Perinci::Sub::Util" => 0,
     "Perinci::Sub::Wrapper" => "0.46",
     "Progress::Any" => 0,
@@ -45,37 +46,44 @@ my %WriteMakefileArgs = (
     "Test::Exception" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.52",
+  "VERSION" => "0.53",
   "test" => {
     "TESTS" => "t/*.t"
   }
 );
 
 
-unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
-  my $tr = delete $WriteMakefileArgs{TEST_REQUIRES};
-  my $br = $WriteMakefileArgs{BUILD_REQUIRES};
-  for my $mod ( keys %$tr ) {
-    if ( exists $br->{$mod} ) {
-      $br->{$mod} = $tr->{$mod} if $tr->{$mod} > $br->{$mod};
-    }
-    else {
-      $br->{$mod} = $tr->{$mod};
-    }
-  }
-}
+my %FallbackPrereqs = (
+  "Class::Inspector" => 0,
+  "File::Slurp" => 0,
+  "File::Spec" => 0,
+  "IO::Handle" => 0,
+  "IPC::Open3" => 0,
+  "Log::Any" => 0,
+  "Module::List" => 0,
+  "Perinci::Access::Base" => "0.30",
+  "Perinci::Examples" => "0.08",
+  "Perinci::Object" => "0.11",
+  "Perinci::Sub::Complete" => 0,
+  "Perinci::Sub::Util" => 0,
+  "Perinci::Sub::Wrapper" => "0.46",
+  "Progress::Any" => 0,
+  "Riap" => "v1.1.19",
+  "Rinci" => "v1.1.36",
+  "SHARYANTO::ModuleOrPrefix::Path" => 0,
+  "SHARYANTO::Package::Util" => 0,
+  "Test::Exception" => 0,
+  "Test::More" => "0.98",
+  "Tie::Cache" => 0,
+  "URI::Split" => 0,
+  "UUID::Random" => 0
+);
 
-unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
-  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
-  my $pp = $WriteMakefileArgs{PREREQ_PM};
-  for my $mod ( keys %$br ) {
-    if ( exists $pp->{$mod} ) {
-      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
-    }
-    else {
-      $pp->{$mod} = $br->{$mod};
-    }
-  }
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
+  delete $WriteMakefileArgs{TEST_REQUIRES};
+  delete $WriteMakefileArgs{BUILD_REQUIRES};
+  $WriteMakefileArgs{PREREQ_PM} = \%FallbackPrereqs;
 }
 
 delete $WriteMakefileArgs{CONFIGURE_REQUIRES}

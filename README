@@ -3,7 +3,7 @@ NAME
     Riap
 
 VERSION
-    version 0.52
+    version 0.53
 
 SYNOPSIS
     First write your code and add Rinci metadata to them:
@@ -88,6 +88,21 @@ SEE ALSO
     Perinci::Access
 
     Riap
+
+HOMEPAGE
+    Please visit the project's homepage at
+    <https://metacpan.org/release/Perinci-Access-Perl>.
+
+SOURCE
+    Source repository is at
+    <https://github.com/sharyanto/perl-Perinci-Access-Perl>.
+
+BUGS
+    Please report any bugs or feature requests on the bugtracker website
+    http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Access-Perl
+
+    When submitting a bug or request, please include a test-file or a patch
+    to an existing test-file that illustrates the bug or desired feature.
 
 AUTHOR
     Steven Haryanto <stevenharyanto@gmail.com>

@@ -73,7 +73,7 @@
          "web" : "https://github.com/sharyanto/perl-Perinci-Access-Perl"
       }
    },
-   "version" : "0.54",
+   "version" : "0.55",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018001"

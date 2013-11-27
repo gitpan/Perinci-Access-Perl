@@ -8,7 +8,7 @@ use URI::Split qw(uri_split);
 
 use parent qw(Perinci::Access::Schemeless);
 
-our $VERSION = '0.54'; # VERSION
+our $VERSION = '0.55'; # VERSION
 
 sub new {
     my $class = shift;
@@ -20,7 +20,7 @@ sub new {
     # anything fancy like that.
     delete $self->{package_prefix};
 
-    $self->{allow_schemes} = ['pl'];
+    $self->{allow_schemes} = ['pl', ''];
     $self->{deny_schemes} = undef;
 
     $self;
@@ -52,7 +52,7 @@ Perinci::Access::Perl - Access Perl module, functions, variables through Riap
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 SYNOPSIS
 

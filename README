@@ -3,7 +3,7 @@ NAME
     Riap
 
 VERSION
-    version 0.53
+    version 0.54
 
 SYNOPSIS
     First write your code and add Rinci metadata to them:
@@ -99,7 +99,7 @@ SOURCE
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
-    http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Access-Perl
+    <https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Access-Perl>
 
     When submitting a bug or request, please include a test-file or a patch
     to an existing test-file that illustrates the bug or desired feature.

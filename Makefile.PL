@@ -29,13 +29,14 @@ my %WriteMakefileArgs = (
     "Perinci::Sub::Util" => 0,
     "Perinci::Sub::Wrapper" => "0.46",
     "Progress::Any" => 0,
-    "Riap" => "v1.1.19",
+    "Riap" => "v1.1.20",
     "Rinci" => "v1.1.36",
     "SHARYANTO::ModuleOrPrefix::Path" => 0,
     "SHARYANTO::Package::Util" => 0,
     "Tie::Cache" => 0,
     "URI::Split" => 0,
-    "UUID::Random" => 0
+    "UUID::Random" => 0,
+    "experimental" => 0
   },
   "TEST_REQUIRES" => {
     "File::Slurp" => 0,
@@ -46,7 +47,7 @@ my %WriteMakefileArgs = (
     "Test::Exception" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.53",
+  "VERSION" => "0.54",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -68,7 +69,7 @@ my %FallbackPrereqs = (
   "Perinci::Sub::Util" => 0,
   "Perinci::Sub::Wrapper" => "0.46",
   "Progress::Any" => 0,
-  "Riap" => "v1.1.19",
+  "Riap" => "v1.1.20",
   "Rinci" => "v1.1.36",
   "SHARYANTO::ModuleOrPrefix::Path" => 0,
   "SHARYANTO::Package::Util" => 0,
@@ -76,7 +77,8 @@ my %FallbackPrereqs = (
   "Test::More" => "0.98",
   "Tie::Cache" => 0,
   "URI::Split" => 0,
-  "UUID::Random" => 0
+  "UUID::Random" => 0,
+  "experimental" => 0
 );
 
 

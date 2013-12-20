@@ -16,7 +16,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.55'; # VERSION
+our $VERSION = '0.56'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -73,6 +73,7 @@ sub new {
     #$self->{allow_schemes}
     #$self->{deny_schemes}
     #$self->{package_prefix}
+    $self->{debug}                 //= $ENV{PERINCI_ACCESS_SCHEMELESS_DEBUG} // 0;
 
     $self;
 }
@@ -80,16 +81,48 @@ sub new {
 # for older Perinci::Access::Base 0.28-, to remove later
 sub _init {}
 
+# if paths=/a/b, will match /a/b as well as /a/b/c
 sub __match_paths {
     my ($path, $paths) = @_;
 
-    # modifies $paths, convert array of strings to array of regexes to avoid
-    # reconstructing on each request
+    my $pathslash = $path =~ m!/\z! ? $path : "$path/";
+
     for (ref($paths) eq 'ARRAY' ? @$paths : $paths) {
         if (ref($_) eq 'Regexp') {
-            return 1 if $path ~~ $_;
+            return 1 if $path =~ $_;
         } else {
-            return 1 if $_ eq $path || index($_, "$path/") >= 0;
+            if (m!/\z!) {
+                return 1 if $_ eq $pathslash || index($pathslash, $_) == 0;
+            } else {
+                my $p = "$_/";
+                return 1 if $p eq $path || index($pathslash, $p) == 0;
+            }
+        }
+    }
+    0;
+}
+
+# if paths=/a/b, will match /a/b as well as /a/b/c AS WELL AS /a and /. only
+# suitable for 'list' action, e.g. allow_path is '/a/b' but we can do 'list /'
+# and 'list /a' too (but not 'list /c').
+sub __match_paths2 {
+    my ($path, $paths) = @_;
+
+    my $pathslash = $path =~ m!/\z! ? $path : "$path/";
+
+    for (ref($paths) eq 'ARRAY' ? @$paths : $paths) {
+        if (ref($_) eq 'Regexp') {
+            # we can't match a regex against a string, so we just pass here
+            return 1;
+        } else {
+            if (m!/\z!) {
+                return 1 if $_ eq $pathslash || index($_, $pathslash) == 0 ||
+                    index($pathslash, $_) == 0;
+            } else {
+                my $p = "$_/";
+                return 1 if $p eq $path || index($p, $pathslash) == 0 ||
+                    index($pathslash, $p) == 0 ;
+            }
         }
     }
     0;
@@ -99,9 +132,15 @@ sub _parse_uri {
     my ($self, $req) = @_;
 
     my $path = $req->{-uri_path};
-    if (defined($self->{allow_paths}) &&
-            !__match_paths($path, $self->{allow_paths})) {
-        return err(403, "Forbidden uri path (does not match allow_paths)");
+    if (defined $self->{allow_paths}) {
+        my $allow;
+        if ($self->{_actionmetas}{$req->{action}}{allow_request_parent_path}) {
+            $allow = __match_paths2($path, $self->{allow_paths});
+        } else {
+            $allow = __match_paths($path, $self->{allow_paths});
+        }
+        return err(403, "Forbidden uri path (does not match allow_paths)")
+            unless $allow;
     }
     if (defined($self->{deny_paths}) &&
             __match_paths($path, $self->{deny_paths})) {
@@ -347,7 +386,15 @@ sub request {
 
     my $meth = "action_$action";
     # check transaction
-    $self->$meth($req);
+
+    $res = $self->$meth($req);
+    if ($self->{debug}) {
+        $res->[3] //= {};
+        $res->[3]{debug} = {
+            req => $req,
+        };
+    }
+    $res;
 }
 
 sub parse_url {
@@ -380,7 +427,7 @@ sub action_info {
         type => $req->{-type},
     };
 
-    [200, "OK", $res];
+    [200, "OK (info action)", $res];
 }
 
 sub actionmeta_actions { +{
@@ -405,12 +452,14 @@ sub action_actions {
             push @res, $k;
         }
     }
-    [200, "OK", \@res];
+    [200, "OK (actions action)", \@res];
 }
 
 sub actionmeta_list { +{
     applies_to => ['package'],
     summary    => "List code entities inside this package code entity",
+    # this means, even if allow_path is '/a/b', we allow request on '/a' or '/'.
+    allow_request_parent_path => 1,
 } }
 
 sub action_list {
@@ -425,11 +474,11 @@ sub action_list {
     my $filter_path = sub {
         my $path = shift;
         if (defined($self->{allow_paths}) &&
-                !__match_paths($path, $self->{allow_paths})) {
+                !__match_paths2($path, $self->{allow_paths})) {
             return 0;
         }
         if (defined($self->{deny_paths}) &&
-                __match_paths($path, $self->{deny_paths})) {
+                __match_paths2($path, $self->{deny_paths})) {
             return 0;
         }
         1;
@@ -484,7 +533,7 @@ sub action_list {
         }
     }
 
-    [200, "OK", \@res];
+    [200, "OK (list action)", \@res];
 }
 
 sub actionmeta_meta { +{
@@ -498,7 +547,7 @@ sub action_meta {
     my $res = $self->get_meta($req);
     return $res if $res;
 
-    [200, "OK", $req->{-meta}, {orig_meta=>$req->{-orig_meta}}];
+    [200, "OK (meta action)", $req->{-meta}, {orig_meta=>$req->{-orig_meta}}];
 }
 
 sub actionmeta_call { +{
@@ -576,7 +625,7 @@ sub action_complete_arg_val {
     my $res = $self->_get_code_and_meta($req);
     return $res unless $res->[0] == 200;
     my (undef, $meta) = @{$res->[2]};
-    [200, "OK",
+    [200, "OK (complete_arg_val action)",
      Perinci::Sub::Complete::complete_arg_val(meta=>$meta, word=>$word,
                                               arg=>$arg, ci=>$ci) // []];
 }
@@ -605,7 +654,7 @@ sub action_child_metas {
         $res{$ent} = $res->[2];
         $om{$ent}  = $res->[3]{orig_meta};
     }
-    [200, "OK", \%res, {orig_metas=>\%om}];
+    [200, "OK (child_metas action)", \%res, {orig_metas=>\%om}];
 }
 
 sub actionmeta_get { +{
@@ -629,7 +678,7 @@ sub action_get {
             $prefix eq '@' ? \@{$name} :
                 $prefix eq '%' ? \%{$name} :
                     undef;
-    [200, "OK", $res];
+    [200, "OK (get action)", $res];
 }
 
 sub _pre_tx_action {
@@ -841,7 +890,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 DESCRIPTION
 
@@ -900,7 +949,7 @@ property in its metadata:
      ...
  }
 
-For these functions, periai will then pass a special argument C<-progress>
+For these functions, this class will pass a special argument C<-progress>
 containing L<Progress::Any> object. Functions can update progress using this
 object.
 

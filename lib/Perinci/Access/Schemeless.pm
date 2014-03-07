@@ -16,7 +16,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.57'; # VERSION
+our $VERSION = '0.58'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -308,7 +308,6 @@ sub _get_code_and_meta {
             require Perinci::Sub::Wrapper;
             $wrapres = Perinci::Sub::Wrapper::wrap_sub(
                 sub_name=>$name, meta=>$meta,
-                forbid_tags => ['die'],
                 %{$self->{extra_wrapper_args}},
                 convert=>{
                     args_as=>'hash', result_naked=>0,
@@ -607,7 +606,11 @@ sub action_call {
         $tm->{_tx_id} = undef if $tm;
     } else {
         $args{-confirm} = 1 if $req->{confirm};
-        $res = $code->(%args);
+        eval { $res = $code->(%args) };
+        my $eval_err = $@;
+        if ($eval_err) {
+            $res = err(500, "Function died: $eval_err", $res);
+        }
     }
 
     $res;
@@ -894,7 +897,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 DESCRIPTION
 
@@ -1124,7 +1127,7 @@ Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Steven Haryanto.
+This software is copyright (c) 2014 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

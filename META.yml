@@ -42,7 +42,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Access-Perl
   homepage: https://metacpan.org/release/Perinci-Access-Perl
   repository: git://github.com/sharyanto/perl-Perinci-Access-Perl.git
-version: '0.59'
+version: '0.60'
 x_Dist_Zilla:
   perl:
     version: '5.018002'

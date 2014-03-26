@@ -42,7 +42,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Access-Perl
   homepage: https://metacpan.org/release/Perinci-Access-Perl
   repository: git://github.com/sharyanto/perl-Perinci-Access-Perl.git
-version: '0.60'
+version: '0.61'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
@@ -228,7 +228,7 @@ x_Dist_Zilla:
     -
       class: Dist::Zilla::Plugin::Rinci::Validate
       name: '@Author::SHARYANTO/Rinci::Validate'
-      version: '0.11'
+      version: '0.12'
     -
       class: Dist::Zilla::Plugin::Test::Compile
       config:

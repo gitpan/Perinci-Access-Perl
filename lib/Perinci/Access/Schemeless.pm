@@ -16,7 +16,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.60'; # VERSION
+our $VERSION = '0.61'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -613,7 +613,7 @@ sub action_call {
         eval { $res = $req->{-code}->(%args) };
         my $eval_err = $@;
         if ($eval_err) {
-            $res = err(500, "Function died: $eval_err", $res);
+            $res = err(500, "Function died: $eval_err");
         }
     }
 
@@ -900,7 +900,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.60
+version 0.61
 
 =head1 DESCRIPTION
 

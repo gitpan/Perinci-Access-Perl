@@ -16,7 +16,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.61'; # VERSION
+our $VERSION = '0.62'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -301,8 +301,13 @@ sub _get_code_and_meta {
       GET_CODE:
         {
             if (!$self->{wrap} ||
+                    # .log is old name, we'll support it for some time
                     ($meta->{"x.perinci.sub.wrapper.log"} &&
-                         $meta->{"x.perinci.sub.wrapper.log"}[-1]{embed})) {
+                         $meta->{"x.perinci.sub.wrapper.log"}[-1]{embed})
+                        ||
+                    ($meta->{"x.perinci.sub.wrapper.logs"} &&
+                         $meta->{"x.perinci.sub.wrapper.logs"}[-1]{embed})
+                ) {
                 $code = \&{$name};
                 last GET_CODE;
             }
@@ -900,7 +905,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.61
+version 0.62
 
 =head1 DESCRIPTION
 

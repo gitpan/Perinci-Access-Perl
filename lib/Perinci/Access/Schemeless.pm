@@ -16,13 +16,10 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.62'; # VERSION
+our $VERSION = '0.63'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
-
-# note: no method should die() because we are called by
-# Perinci::Access::HTTP::Server without extra eval().
 
 sub new {
     require Class::Inspector;
@@ -36,9 +33,6 @@ sub new {
         function => [],
         variable => [],
     ); # key = type, val = [[ACTION, META], ...]
-
-    # cache, so we can save a method call for every request()
-    $self->{_actionmetas} = {}; # key = act
 
     my @comacts;
     for my $meth (@{Class::Inspector->methods(ref $self)}) {
@@ -387,15 +381,18 @@ sub request {
     my $res = $self->check_request($req);
     return $res if $res;
 
-    my $am = $self->{_actionmetas}{$action};
-    return err(502, "Action '$action' not implemented") unless $am;
+    return err(502, "Action '$action' not implemented")
+        unless $self->can("actionmeta_$action");
+
+    my $am = $self->${\("actionmeta_$action")};
 
     $res = $self->_parse_uri($req);
     return $res if $res;
 
     return err(502, "Action '$action' not implemented for ".
                    "'$req->{-type}' entity")
-        unless $self->{_typeacts}{ $req->{-type} }{ $action };
+        unless $am->{applies_to}[0] eq '*' ||
+            $req->{-type} ~~ @{ $am->{applies_to} };
 
     my $meth = "action_$action";
     # check transaction
@@ -905,7 +902,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.62
+version 0.63
 
 =head1 DESCRIPTION
 

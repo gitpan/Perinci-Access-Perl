@@ -16,7 +16,7 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.63'; # VERSION
+our $VERSION = '0.64'; # VERSION
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -68,6 +68,7 @@ sub new {
     #$self->{deny_schemes}
     #$self->{package_prefix}
     $self->{debug}                 //= $ENV{PERINCI_ACCESS_SCHEMELESS_DEBUG} // 0;
+    $self->{accept_argv}           //= 1;
 
     $self;
 }
@@ -582,7 +583,20 @@ sub action_call {
     $res = $self->get_code($req);
     return $res if $res;
 
-    my %args = %{ $req->{args} // {} };
+    my %args;
+
+    # try to convert from argv if given argv
+    if (exists($req->{argv}) && $self->{accept_argv}) {
+        require Perinci::Sub::GetArgs::Argv;
+        $res = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+            argv => [@{ $req->{argv} }],
+            meta => $req->{-meta},
+        );
+        return err(400, "Can't parse argv", $res) unless $res->[0] == 200;
+        %args = %{ $res->[2] };
+    } else {
+        %args = %{ $req->{args} // {} };
+    }
 
     my $risub = risub($req->{-meta});
 
@@ -902,7 +916,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-version 0.63
+version 0.64
 
 =head1 DESCRIPTION
 
@@ -1096,6 +1110,15 @@ will be called on each request to get transaction manager. This can be used to
 instantiate Perinci::Tx::Manager in a custom way, e.g. specifying per-user
 transaction data directory and limits, which needs to be done on a per-request
 basis.
+
+=item * accept_argv => BOOL (default: 1)
+
+From version 0.64, C<argv> key is accepted by the C<call> action and will be
+converted to C<args>. This server-side conversion from C<argv> to <args> can
+handle coderefs in C<cmdline_aliases> (and probably other things too) compared
+when doing conversion at the client-side.
+
+This option allows disabling this behavior.
 
 =back
 

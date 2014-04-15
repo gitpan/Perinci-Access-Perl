@@ -588,6 +588,23 @@ subtest "action: call" => sub {
         status => 200,
         result => 1,
     );
+
+    test_request(
+        name => 'call: argv',
+        req => [call => "/Perinci/Examples/gen_array",
+                {argv=>[5]}],
+        status => 200,
+        posttest => sub {
+            my ($res) = @_;
+            is(~~@{ $res->[2] }, 5);
+        },
+    );
+    test_request(
+        name => 'call: failure in parsing argv -> 400',
+        req => [call => "/Perinci/Examples/gen_array",
+                {argv=>[5, 5]}],
+        status => 400,
+    );
 };
 
 subtest "action: complete_arg_val" => sub {

@@ -74,7 +74,7 @@
          "web" : "https://github.com/sharyanto/perl-Perinci-Access-Perl"
       }
    },
-   "version" : "0.64",
+   "version" : "0.65",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
@@ -181,9 +181,9 @@
             "version" : "5.015"
          },
          {
-            "class" : "Dist::Zilla::Plugin::SHARYANTO::OurPkgVersion",
-            "name" : "@Author::SHARYANTO/SHARYANTO::OurPkgVersion",
-            "version" : "0.02"
+            "class" : "Dist::Zilla::Plugin::OurDate",
+            "name" : "@Author::SHARYANTO/OurDate",
+            "version" : "0.01"
          },
          {
             "class" : "Dist::Zilla::Plugin::PodWeaver",
@@ -319,6 +319,11 @@
             "class" : "Dist::Zilla::Plugin::Rinci::Validate",
             "name" : "@Author::SHARYANTO/Rinci::Validate",
             "version" : "0.12"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::SHARYANTO::OurPkgVersion",
+            "name" : "@Author::SHARYANTO/SHARYANTO::OurPkgVersion",
+            "version" : "0.02"
          },
          {
             "class" : "Dist::Zilla::Plugin::Test::Compile",

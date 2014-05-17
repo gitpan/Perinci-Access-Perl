@@ -17,8 +17,8 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.66'; # VERSION
-our $DATE = '2014-04-30'; # DATE
+our $VERSION = '0.67'; # VERSION
+our $DATE = '2014-05-17'; # DATE
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -977,7 +977,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.66 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-04-30.
+This document describes version 0.67 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-05-17.
 
 =head1 DESCRIPTION
 

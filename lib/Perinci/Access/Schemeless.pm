@@ -12,13 +12,13 @@ use Perinci::Object;
 use Perinci::Sub::Normalize qw(normalize_function_metadata);
 use Perinci::Sub::Util qw(err);
 use Scalar::Util qw(blessed reftype);
-use ModuleOrPrefix::Path qw(module_or_prefix_path);
+use SHARYANTO::Module::Path qw(module_path);
 use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.68'; # VERSION
-our $DATE = '2014-06-18'; # DATE
+our $VERSION = '0.69'; # VERSION
+our $DATE = '2014-06-25'; # DATE
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -243,7 +243,7 @@ sub _load_module {
     # load and cache negative result
     my $res;
     {
-        my $fullpath = module_or_prefix_path($module_p);
+        my $fullpath = module_path(module=>$module_p, find_pmc=>0);
 
         # when the module path does not exist, but the package does, we can
         # ignore this error. for example: main, CORE, etc.
@@ -1000,7 +1000,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.68 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-06-18.
+This document describes version 0.69 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-06-25.
 
 =head1 DESCRIPTION
 

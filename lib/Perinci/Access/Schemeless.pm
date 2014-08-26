@@ -17,8 +17,8 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.69'; # VERSION
-our $DATE = '2014-06-25'; # DATE
+our $VERSION = '0.70'; # VERSION
+our $DATE = '2014-08-24'; # DATE
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -298,15 +298,21 @@ sub get_meta {
 
     my ($self, $req) = @_;
 
-    if (!$req->{-perl_package}) {
-        $req->{-meta} = {v=>1.1}; # empty metadata for /
-        return;
+    my $pkg  = $req->{-perl_package};
+    my $leaf = $req->{-uri_leaf};
+    my $type = $req->{-type};
+    if (!length($pkg)) {
+        if (length $leaf) {
+            # 404 for all non-subpackage entity directly under /
+            return [404, "No metadata for ::$leaf"];
+        } else {
+            # empty metadata for root (/)
+            $req->{-meta} = {v=>1.1};
+            return;
+        }
     }
 
-    my $type = $req->{-type};
-    my $pkg  = $req->{-perl_package};
-
-    my $name = "$pkg\::$req->{-uri_leaf}";
+    my $name = "$pkg\::$leaf";
     if ($self->{_meta_cache}{$name}) {
         $req->{-meta} = $self->{_meta_cache}{$name};
         return;
@@ -319,7 +325,7 @@ sub get_meta {
 
     my $meta;
     my $metas = \%{"$pkg\::SPEC"};
-    $meta = $metas->{ $req->{-uri_leaf} || ":package" };
+    $meta = $metas->{ $leaf || ":package" };
 
     if (!$meta && $type eq 'package') {
         $meta = {v=>1.1};
@@ -1000,7 +1006,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.69 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-06-25.
+This document describes version 0.70 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-08-24.
 
 =head1 DESCRIPTION
 

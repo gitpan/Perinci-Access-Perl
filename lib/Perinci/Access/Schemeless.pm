@@ -17,8 +17,8 @@ use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
-our $VERSION = '0.70'; # VERSION
-our $DATE = '2014-08-24'; # DATE
+our $VERSION = '0.71'; # VERSION
+our $DATE = '2014-09-06'; # DATE
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -1006,7 +1006,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.70 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-08-24.
+This document describes version 0.71 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-09-06.
 
 =head1 DESCRIPTION
 
@@ -1232,11 +1232,11 @@ feature.
 
 =head1 AUTHOR
 
-Steven Haryanto <stevenharyanto@gmail.com>
+perlancar <perlancar@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2014 by Steven Haryanto.
+This software is copyright (c) 2014 by perlancar@cpan.org.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

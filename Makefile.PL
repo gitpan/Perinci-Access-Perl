@@ -23,7 +23,7 @@ my %WriteMakefileArgs = (
     "Class::Inspector" => 0,
     "Log::Any" => 0,
     "Module::List" => 0,
-    "Perinci::Access::Base" => "0.30",
+    "Perinci::Access::Base" => "0.31",
     "Perinci::Object" => "0.11",
     "Perinci::Sub::Complete" => 0,
     "Perinci::Sub::GetArgs::Argv" => "0.46",
@@ -49,7 +49,7 @@ my %WriteMakefileArgs = (
     "Test::Exception" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.72",
+  "VERSION" => "0.73",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -64,7 +64,7 @@ my %FallbackPrereqs = (
   "IPC::Open3" => 0,
   "Log::Any" => 0,
   "Module::List" => 0,
-  "Perinci::Access::Base" => "0.30",
+  "Perinci::Access::Base" => "0.31",
   "Perinci::Examples" => "0.08",
   "Perinci::Object" => "0.11",
   "Perinci::Sub::Complete" => 0,

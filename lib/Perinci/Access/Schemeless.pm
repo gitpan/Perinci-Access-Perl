@@ -1,5 +1,8 @@
 package Perinci::Access::Schemeless;
 
+our $DATE = '2014-10-23'; # DATE
+our $VERSION = '0.72'; # VERSION
+
 use 5.010001;
 use strict;
 use warnings;
@@ -16,9 +19,6 @@ use SHARYANTO::Module::Path qw(module_path);
 use SHARYANTO::Package::Util qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
-
-our $VERSION = '0.71'; # VERSION
-our $DATE = '2014-09-06'; # DATE
 
 our $re_perl_package =
     qr/\A[A-Za-z_][A-Za-z_0-9]*(::[A-Za-z_][A-Za-z_0-9]*)*\z/;
@@ -155,11 +155,11 @@ sub _parse_uri {
 
     my $sch = $req->{-uri_scheme} // "";
     if (defined($self->{allow_schemes}) && !($sch ~~ $self->{allow_schemes})) {
-        return err(502,
+        return err(501,
                    "Unsupported uri scheme (does not match allow_schemes)");
     }
     if (defined($self->{deny_schemes}) && ($sch ~~ $self->{deny_schemes})) {
-        return err(502, "Unsupported uri scheme (matches deny_schemes)");
+        return err(501, "Unsupported uri scheme (matches deny_schemes)");
     }
 
     my ($dir, $leaf, $perl_package);
@@ -450,7 +450,7 @@ sub request {
     my $res = $self->check_request($req);
     return $res if $res;
 
-    return err(502, "Action '$action' not implemented")
+    return err(501, "Action '$action' not implemented")
         unless $self->can("actionmeta_$action");
 
     my $am = $self->${\("actionmeta_$action")};
@@ -458,7 +458,7 @@ sub request {
     $res = $self->_parse_uri($req);
     return $res if $res;
 
-    return err(502, "Action '$action' not implemented for ".
+    return err(501, "Action '$action' not implemented for ".
                    "'$req->{-type}' entity")
         unless $am->{applies_to}[0] eq '*' ||
             $req->{-type} ~~ @{ $am->{applies_to} };
@@ -501,7 +501,6 @@ sub action_info {
     return $mres if $mres;
 
     my $res = {
-        v    => 1.1,
         uri  => $req->{uri},
         type => $req->{-type},
     };
@@ -601,7 +600,6 @@ sub action_list {
         next if $f_type && $f_type ne $t;
         if ($detail) {
             push @res, {
-                #v=>1.1,
                 uri=>$e, type=>$t,
             };
         } else {
@@ -1006,7 +1004,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.71 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-09-06.
+This document describes version 0.72 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-10-23.
 
 =head1 DESCRIPTION
 
@@ -1220,7 +1218,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Ac
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-Access-Perl>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-Access-Perl>.
 
 =head1 BUGS
 

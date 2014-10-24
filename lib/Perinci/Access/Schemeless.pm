@@ -1,7 +1,7 @@
 package Perinci::Access::Schemeless;
 
-our $DATE = '2014-10-23'; # DATE
-our $VERSION = '0.73'; # VERSION
+our $DATE = '2014-10-24'; # DATE
+our $VERSION = '0.74'; # VERSION
 
 use 5.010001;
 use strict;
@@ -699,6 +699,14 @@ sub action_call {
         }
     }
 
+    # add hint that result is binary
+    if (defined $res->[2]) {
+        if ($req->{-meta}{result} && $req->{-meta}{result}{schema} &&
+                $req->{-meta}{result}{schema}[0] eq 'buf') {
+            $res->[3]{'x.hint.result_binary'} = 1;
+        }
+    }
+
     $res;
 }
 
@@ -1004,7 +1012,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.73 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-10-23.
+This document describes version 0.74 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-10-24.
 
 =head1 DESCRIPTION
 

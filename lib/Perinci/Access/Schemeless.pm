@@ -1,7 +1,7 @@
 package Perinci::Access::Schemeless;
 
-our $DATE = '2014-10-24'; # DATE
-our $VERSION = '0.74'; # VERSION
+our $DATE = '2014-12-02'; # DATE
+our $VERSION = '0.75'; # VERSION
 
 use 5.010001;
 use strict;
@@ -243,7 +243,7 @@ sub _load_module {
     # load and cache negative result
     my $res;
     {
-        my $fullpath = module_path(module=>$module_p, find_pmc=>0);
+        my $fullpath = module_path(module=>$pkg, find_pmc=>0, find_prefix=>1);
 
         # when the module path does not exist, but the package does, we can
         # ignore this error. for example: main, CORE, etc.
@@ -1012,7 +1012,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.74 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-10-24.
+This document describes version 0.75 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-12-02.
 
 =head1 DESCRIPTION
 
@@ -1215,6 +1215,15 @@ Process Riap request and return enveloped result. $server_url will be used as
 the Riap request key 'uri', as there is no server in this case.
 
 =head2 $pa->parse_url($server_url) => HASH
+
+=head1 ADDED RESULT METADATA
+
+This class might add the following property/attribute in result metadata:
+
+=head2 x.hint.result_binary => bool
+
+If result's schema type is C<buf>, then this class will set this attribute to
+true, to give hints to result formatters.
 
 =head1 SEE ALSO
 

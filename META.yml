@@ -23,6 +23,7 @@ requires:
   Class::Inspector: '0'
   Log::Any: '0'
   Module::List: '0'
+  Module::Path::More: '0'
   Perinci::Access::Base: '0.31'
   Perinci::Object: '0.11'
   Perinci::Sub::Complete: '0'
@@ -33,7 +34,6 @@ requires:
   Progress::Any: '0'
   Riap: v1.2.0
   Rinci: v1.1.62
-  SHARYANTO::Module::Path: '0'
   SHARYANTO::Package::Util: '0'
   Tie::Cache: '0'
   URI::Split: '0'
@@ -44,7 +44,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Access-Perl
   homepage: https://metacpan.org/release/Perinci-Access-Perl
   repository: git://github.com/perlancar/perl-Perinci-Access-Perl.git
-version: '0.75'
+version: '0.76'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
@@ -191,7 +191,7 @@ x_Dist_Zilla:
             -
               class: Pod::Weaver::Plugin::Rinci
               name: '@Author::PERLANCAR/Rinci'
-              version: '0.19'
+              version: '0.20'
             -
               class: Pod::Weaver::Section::Leftovers
               name: '@Author::PERLANCAR/Leftovers'

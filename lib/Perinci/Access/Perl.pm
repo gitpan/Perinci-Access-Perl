@@ -8,7 +8,7 @@ use URI::Split qw(uri_split);
 
 use parent qw(Perinci::Access::Schemeless);
 
-our $VERSION = '0.75'; # VERSION
+our $VERSION = '0.76'; # VERSION
 
 sub new {
     my $class = shift;
@@ -52,7 +52,7 @@ Perinci::Access::Perl - Access Perl module, functions, variables through Riap
 
 =head1 VERSION
 
-This document describes version 0.75 of Perinci::Access::Perl (from Perl distribution Perinci-Access-Perl), released on 2014-12-02.
+This document describes version 0.76 of Perinci::Access::Perl (from Perl distribution Perinci-Access-Perl), released on 2014-12-03.
 
 =head1 SYNOPSIS
 

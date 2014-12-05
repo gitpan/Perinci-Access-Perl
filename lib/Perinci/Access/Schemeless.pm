@@ -1,7 +1,7 @@
 package Perinci::Access::Schemeless;
 
-our $DATE = '2014-12-03'; # DATE
-our $VERSION = '0.76'; # VERSION
+our $DATE = '2014-12-05'; # DATE
+our $VERSION = '0.77'; # VERSION
 
 use 5.010001;
 use strict;
@@ -16,7 +16,7 @@ use Perinci::Sub::Normalize qw(normalize_function_metadata);
 use Perinci::Sub::Util qw(err);
 use Scalar::Util qw(blessed reftype);
 use Module::Path::More qw(module_path);
-use SHARYANTO::Package::Util qw(package_exists);
+use Package::MoreUtil qw(package_exists);
 use Tie::Cache;
 use URI::Split qw(uri_split uri_join);
 
@@ -1012,7 +1012,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.76 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-12-03.
+This document describes version 0.77 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-12-05.
 
 =head1 DESCRIPTION
 

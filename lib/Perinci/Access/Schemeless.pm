@@ -1,7 +1,7 @@
 package Perinci::Access::Schemeless;
 
-our $DATE = '2014-12-11'; # DATE
-our $VERSION = '0.78'; # VERSION
+our $DATE = '2014-12-31'; # DATE
+our $VERSION = '0.79'; # VERSION
 
 use 5.010001;
 use strict;
@@ -304,7 +304,11 @@ sub get_meta {
     if (!length($pkg)) {
         if (length $leaf) {
             # 404 for all non-subpackage entity directly under /
-            return [404, "No metadata for ::$leaf"];
+            return [404, "No metadata for ::$leaf (".
+                (package_exists($pkg) ? "package '$pkg' exists, perhaps you mentioned '$pkg' somewhere without actually loading the module, or perhaps '$leaf' is a typo?" :
+                     "package '$pkg' doesn't exist, perhaps '$pkg' or '$leaf' is a typo?").
+                    ")"
+            ];
         } else {
             # empty metadata for root (/)
             $req->{-meta} = {v=>1.1};
@@ -331,7 +335,13 @@ sub get_meta {
         $meta = {v=>1.1};
     }
 
-    return err(404, "No metadata for $name") unless $meta;
+    return err(404,
+               join("",
+                    "No metadata for $name (package '$pkg' exists, ",
+                    "perhaps you mentioned '$pkg' ",
+                    "somewhere without actually loading the module, or ",
+                    "perhaps '$leaf' is a typo?)",
+                )) unless $meta;
 
     if ($res) {
         if ($res->[0] == 405) {
@@ -1012,7 +1022,7 @@ Perinci::Access::Schemeless - Base class for Perinci::Access::Perl
 
 =head1 VERSION
 
-This document describes version 0.78 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2014-12-11.
+This document describes version 0.79 of Perinci::Access::Schemeless (from Perl distribution Perinci-Access-Perl), released on 2015-12-31.
 
 =head1 DESCRIPTION
 
@@ -1235,7 +1245,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Ac
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/perlancar/perl-Perinci-Access-Perl>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-Access-Perl>.
 
 =head1 BUGS
 
